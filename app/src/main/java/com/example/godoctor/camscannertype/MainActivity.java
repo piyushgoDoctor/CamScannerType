@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -21,34 +22,38 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int CROP_IMAGE=2;
+    private  final String TAG = getClass().getName();
     ImageView mImageView;
     Bitmap imageBitmap,operation,bmp;
 //    private Uri picUri;
-    ImageView image1,image2,image3;
+    ImageView image1,image2,image3,image4,image5,image6;
     ProgressBar progressBar;
     File file;
+    int imageCount=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mImageView= (ImageView) findViewById(R.id.image);
+        mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dispatchTakePictureIntent();
+            }
+        });
         image1= (ImageView) findViewById(R.id.image1);
         image2= (ImageView) findViewById(R.id.image2);
         image3= (ImageView) findViewById(R.id.image3);
+        image4= (ImageView) findViewById(R.id.image4);
+        image5= (ImageView) findViewById(R.id.image5);
+        image6= (ImageView) findViewById(R.id.image6);
         progressBar= (ProgressBar) findViewById(R.id.progressBar);
 
-        image1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-         doBrightness();
-            }
-        });
+        image1.setOnClickListener(new View.OnClickListener() {@Override public void onClick(View v) {doBrightness();}});
         image2.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-              bright();
-                Log.e("Clicked","Clicked");
+            public void onClick(View v) {blue(v);Log.e("Clicked","Clicked");
             }
         });
         image3.setOnClickListener(new View.OnClickListener() {
@@ -57,27 +62,76 @@ public class MainActivity extends AppCompatActivity {
              gama(v);
             }
         });
+        image4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                gray(v);
+            }
+        });
+        image5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dark(v);
+            }
+        });
+        image6.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                green(v);
+            }
+        });
         dispatchTakePictureIntent();
     }
 
         private void dispatchTakePictureIntent() {
-            Intent cropIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-             file = new File(Environment.getExternalStorageDirectory()+File.separator + "img.jpg");
-             cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-            if (cropIntent.resolveActivity(getPackageManager()) != null) {
-                startActivityForResult(cropIntent, REQUEST_IMAGE_CAPTURE);
+//Gallery
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            }
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent,"Select Picture"), REQUEST_IMAGE_CAPTURE);
+
+            // Camera
+//            Intent cropIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//             file = new File(Environment.getExternalStorageDirectory()+File.separator + "img.jpg");
+//             cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+//            if (cropIntent.resolveActivity(getPackageManager()) != null) {
+//                startActivityForResult(cropIntent, REQUEST_IMAGE_CAPTURE);
 
         }
-    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            performCrop();
+//            performCrop();
+            String[] allPath=data.getStringArrayExtra("data");
+//            Log.e(TAG, "onActivityResult: "+allPath.toString());
         }else{
             Bundle extras = data.getExtras();
             imageBitmap = (Bitmap) extras.get("data");
             bmp=imageBitmap;
             mImageView.setImageBitmap(imageBitmap);
+            if(imageCount==1){
+                image1.setImageBitmap(imageBitmap);
+                imageCount++;
+            }
+            else if(imageCount==2){
+                image2.setImageBitmap(imageBitmap);imageCount++;
+            }else
+            if(imageCount==3){
+                image3.setImageBitmap(imageBitmap);imageCount++;
+            }else
+            if(imageCount==4){
+                image4.setImageBitmap(imageBitmap);imageCount++;
+            }else
+            if(imageCount==5){
+                image5.setImageBitmap(imageBitmap);imageCount++;
+            }else
+            if(imageCount==6){
+                image6.setImageBitmap(imageBitmap);imageCount++;
+            }
         }
     }
 
@@ -105,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(cropIntent, CROP_IMAGE);
         }
         // respond to users whose devices do not support the crop action
-        catch (ActivityNotFoundException anfe) {
+        catch (ActivityNotFoundException e) {
             Toast toast = Toast
                     .makeText(this, "This device doesn't support the crop action!", Toast.LENGTH_SHORT);
             toast.show();
@@ -119,11 +173,10 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < bmp.getWidth(); i+=1) {
             for (int j = 0; j < bmp.getHeight(); j+=1) {
-                int p = bmp.getPixel(i, j);
+                int p = bmp.getPixel(i , j);
                 int r = Color.red(p);
                 int g = Color.green(p);
                 int b = Color.blue(p);
-
                 r = (int) red * r;
                 g = (int) green * g;
                 b = (int) blue * b;
@@ -145,9 +198,9 @@ public class MainActivity extends AppCompatActivity {
                 int b = Color.blue(p);
                 int alpha = Color.alpha(p);
 
-                r = 10  +  r;
-                g = 10  + g;
-                b = 10  + b;
+                r = 10 + r;
+                g = 10 + g;
+                b = 10 + b;
                 alpha = 10 + alpha;
                 operation.setPixel(i, j, Color.argb(alpha, r, g, b));
             }
